@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Individual {
+  individual_id   String        @id @default(auto()) @map("_id") @db.ObjectId
+  first_name      String
+  last_name       String
+  age             Int
+  password        String
+  phone           String        @unique
+  number_children Int
+  reviews         Review[]
+  appointments    Appointment[]
+
+  @@map("individuals")
+}
+
+model Babysitter {
+  babysitter_id String        @id @default(auto()) @map("_id") @db.ObjectId
+  first_name    String
+  last_name     String
+  age           Int
+  nationality   String
+  skill         String[]
+  hourly_price  Float
+  password      String
+  phone         String        @unique
+  reviews       Review[]
+  appointments  Appointment[]
+
+  @@map("babysitter")
+}
+
+model Appointment {
+  appointment_id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  appointment_status       Status      @default(pending)
+  date                     DateTime?
+  created_at               DateTime?     @default(now())
+  individual               Individual  @relation(fields: [appointmentIndividual_id], references: [individual_id])
+  appointmentIndividual_id String      @db.ObjectId
+  babysitter               Babysitter? @relation(fields: [appointmentBabysitter_id], references: [babysitter_id])
+  appointmentBabysitter_id String?     @db.ObjectId
+
+  @@map("appointment")
+}
+
+enum Status {
+  pending
+  approved
+  reject
+
+}
+
+model Review {
+  review_id String @id @default(auto()) @map("_id") @db.ObjectId
+  review    String
+  rating    Float
+
+  individual          Individual? @relation(fields: [reviewIndividual_id], references: [individual_id])
+  reviewIndividual_id String      @db.ObjectId
+
+  babysitter          Babysitter? @relation(fields: [reviewBabysitter_id], references: [babysitter_id])
+  reviewBabysitter_id String      @db.ObjectId
+  @@map("review")
+}
